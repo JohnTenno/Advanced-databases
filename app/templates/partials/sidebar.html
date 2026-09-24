@@ -1,0 +1,49 @@
+{# Translucent macOS style sidebar.
+
+   The active row is decided by the blueprint handling the request, so each
+   module lights up its own entry without passing anything extra.
+
+   On phones it collapses into a Bootstrap offcanvas opened from the toolbar. #}
+{# Comments have no row of their own: they are always reached from an article. #}
+{% set sections = [
+  ("dashboard.index",  "dashboard",  "Inicio",     "speedometer2"),
+  ("articles.index",   "articles",   "Articulos",  "file-earmark-text"),
+  ("users.index",      "users",      "Usuarios",   "people"),
+  ("tags.index",       "tags",       "Etiquetas",  "tag"),
+  ("categories.index", "categories", "Categorias", "folder2"),
+] %}
+
+<aside class="sidebar offcanvas-md offcanvas-start" tabindex="-1" id="sidebar">
+
+  <div class="px-3 pt-4 pb-2">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <img src="{{ url_for('static', filename='img/uach-crest.png') }}"
+           alt="Escudo de la Universidad Autonoma de Chihuahua"
+           class="sidebar-crest">
+      <div>
+        <div class="sidebar-title">Blog BDA</div>
+        <div class="sidebar-subtitle">Bases de Datos Avanzadas</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="px-2 flex-grow-1 overflow-auto">
+    <div class="sidebar-section mt-2">Administracion</div>
+    {% for endpoint, module, label, icon in sections %}
+      <a class="sidebar-link {{ 'active' if request.blueprint == module }}"
+         href="{{ url_for(endpoint) }}">
+        <i class="bi bi-{{ icon }}"></i>{{ label }}
+      </a>
+    {% endfor %}
+  </nav>
+
+  <div class="sidebar-footer px-3 py-3">
+    <div class="d-flex align-items-center gap-1 mb-1">
+      <i class="bi bi-database"></i>
+      <span>Oracle XE 21c</span>
+    </div>
+    <code>{{ db_target }}</code>
+    <div class="mt-2">Todo pasa por <code>blog_pkg</code></div>
+  </div>
+
+</aside>

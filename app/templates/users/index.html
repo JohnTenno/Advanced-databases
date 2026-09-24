@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% from "partials/macros.html" import page_header, delete_button, empty_state with context %}
+{% block title %}Usuarios - Blog BDA{% endblock %}
+{% block toolbar %}Usuarios{% endblock %}
+
+{% block content %}
+{{ page_header("Usuarios",
+   "Listado con blog_web_pkg.list_users_with_usage; altas, cambios y bajas con blog_pkg.") }}
+
+<div class="card mb-4">
+  <div class="card-header">Nuevo usuario</div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('users.create') }}" class="row g-3">
+      <div class="col-md-5">
+        <label class="form-label" for="name">Nombre</label>
+        <input class="form-control" id="name" name="name" type="text"
+               maxlength="100" required>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label" for="email">Correo</label>
+        <input class="form-control" id="email" name="email" type="email"
+               maxlength="150" required placeholder="ana@correo.com">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="submit">
+          <i class="bi bi-person-plus me-1"></i>Registrar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if users %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">ID</th><th>Nombre</th><th>Correo</th><th>Alta</th>
+            <th class="text-center">Articulos</th><th class="text-center">Coment.</th>
+            <th class="text-end pe-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td class="ps-3 text-secondary">{{ user.user_id }}</td>
+              <td class="fw-medium">{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td class="text-nowrap">{{ user.created_at | date }}</td>
+              <td class="text-center">{{ user.article_count }}</td>
+              <td class="text-center">{{ user.comment_count }}</td>
+              <td class="text-end pe-3 text-nowrap">
+                <a class="btn btn-sm btn-outline-secondary"
+                   href="{{ url_for('users.edit_form', user_id=user.user_id) }}">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                {# The warning spells out the ON DELETE CASCADE consequence. #}
+                {{ delete_button(
+                     url_for('users.remove', user_id=user.user_id),
+                     "Eliminar a " ~ user.name ~ " borrara tambien sus "
+                     ~ user.article_count ~ " articulo(s). Sus comentarios quedaran como anonimos.") }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {{ empty_state("No hay usuarios registrados.", "person-plus") }}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,570 @@
+/* =========================================================================
+   UACH theme, macOS flavoured, layered on top of Bootstrap 5.
+
+   The palette is sampled straight from the university crest
+   (app/static/img/uach-crest.png):
+
+     purple  #8C2889   the ring around the shield, used as the accent
+     yellow  #F9ED25   the lightning bolt, used for highlights
+     green   #23945D   the shield, reused for the "published" state
+     blue    #6EBDE3   the sky, reused for informational tints
+     ink     #2D1F0F   the wordmark, softened into the text colour
+
+   The macOS cues are: a translucent sidebar, a frosted toolbar, generous
+   corner radii, hairline borders, soft layered shadows and compact controls.
+   ========================================================================= */
+
+:root {
+  /* --- crest palette ---------------------------------------------------- */
+  --uach-purple: #8c2889;
+  --uach-purple-dark: #6f1f6d;
+  --uach-purple-light: #b05bad;
+  --uach-yellow: #f9ed25;
+  --uach-gold: #d8a212;
+  --uach-green: #23945d;
+  --uach-blue: #6ebde3;
+  --uach-ink: #2d1f0f;
+
+  /* --- macOS neutrals --------------------------------------------------- */
+  --mac-bg: #f4f2f6;          /* desktop grey, tinted towards the purple */
+  --mac-surface: #ffffff;
+  --mac-sidebar: rgba(248, 246, 250, 0.78);
+  --mac-toolbar: rgba(255, 255, 255, 0.72);
+  --mac-text: #1d1b20;
+  --mac-text-muted: #6d6a73;
+  --mac-hairline: rgba(60, 50, 70, 0.1);
+  --mac-radius: 12px;
+  --mac-radius-sm: 7px;
+  --mac-shadow: 0 1px 2px rgba(45, 31, 15, 0.05),
+                0 8px 24px rgba(45, 31, 15, 0.06);
+  --mac-shadow-raised: 0 2px 6px rgba(45, 31, 15, 0.08),
+                       0 18px 40px rgba(45, 31, 15, 0.1);
+
+  --sidebar-width: 244px;
+
+  /* --- Bootstrap remapping ---------------------------------------------- */
+  --bs-primary: var(--uach-purple);
+  --bs-primary-rgb: 140, 40, 137;
+  --bs-success: var(--uach-green);
+  --bs-success-rgb: 35, 148, 93;
+  --bs-warning: var(--uach-gold);
+  --bs-warning-rgb: 216, 162, 18;
+  --bs-info: #3f9fce;
+  --bs-info-rgb: 63, 159, 206;
+  --bs-danger: #c0392b;
+  --bs-danger-rgb: 192, 57, 43;
+
+  --bs-body-bg: var(--mac-bg);
+  --bs-body-color: var(--mac-text);
+  --bs-secondary-color: var(--mac-text-muted);
+  --bs-border-color: var(--mac-hairline);
+  --bs-border-radius: var(--mac-radius-sm);
+  --bs-border-radius-lg: var(--mac-radius);
+  --bs-link-color: var(--uach-purple);
+  --bs-link-hover-color: var(--uach-purple-dark);
+  --bs-link-color-rgb: 140, 40, 137;
+
+  --bs-font-sans-serif: "Inter", -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+}
+
+/* =========================================================================
+   Base
+   ========================================================================= */
+
+body {
+  background: var(--mac-bg);
+  color: var(--mac-text);
+  font-family: var(--bs-font-sans-serif);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+
+/* A soft purple wash in the corners, the way a macOS desktop picks up the
+   accent colour behind translucent panels. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60rem 40rem at 0% 0%, rgba(140, 40, 137, 0.1), transparent 60%),
+    radial-gradient(50rem 35rem at 100% 100%, rgba(249, 237, 37, 0.07), transparent 55%);
+}
+
+h1, h2, h3, h4, h5 {
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+
+/* =========================================================================
+   Shell: translucent sidebar + content column
+   ========================================================================= */
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--mac-sidebar);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  border-right: 1px solid var(--mac-hairline);
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .content-column {
+    margin-left: var(--sidebar-width);
+  }
+}
+
+.sidebar-crest {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(45, 31, 15, 0.18));
+}
+
+.sidebar-title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.sidebar-subtitle {
+  font-size: 0.72rem;
+  color: var(--mac-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.sidebar-section {
+  font-size: 0.68rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mac-text-muted);
+  padding: 0 12px;
+  margin-bottom: 4px;
+}
+
+/* Sidebar rows use the rounded filled highlight of Finder and Mail. */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  margin-bottom: 2px;
+  border-radius: 8px;
+  color: var(--mac-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.sidebar-link i {
+  font-size: 1rem;
+  color: var(--uach-purple);
+  opacity: 0.85;
+  width: 1.1rem;
+  text-align: center;
+}
+
+.sidebar-link:hover {
+  background: rgba(140, 40, 137, 0.08);
+  color: var(--uach-purple-dark);
+}
+
+.sidebar-link.active {
+  background: linear-gradient(180deg, var(--uach-purple), var(--uach-purple-dark));
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(111, 31, 109, 0.35);
+}
+
+.sidebar-link.active i {
+  color: var(--uach-yellow);
+  opacity: 1;
+}
+
+.sidebar-footer {
+  font-size: 0.7rem;
+  color: var(--mac-text-muted);
+  border-top: 1px solid var(--mac-hairline);
+}
+
+.sidebar-footer code {
+  font-size: 0.68rem;
+}
+
+/* --- frosted toolbar ------------------------------------------------------ */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background: var(--mac-toolbar);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  border-bottom: 1px solid var(--mac-hairline);
+  min-height: 52px;
+}
+
+.toolbar-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+/* Small capsule showing which Oracle instance is behind the screen. */
+.toolbar-chip {
+  font-size: 0.72rem;
+  color: var(--mac-text-muted);
+  background: rgba(140, 40, 137, 0.07);
+  border: 1px solid rgba(140, 40, 137, 0.14);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* =========================================================================
+   Surfaces
+   ========================================================================= */
+
+.card {
+  background: var(--mac-surface);
+  border: 1px solid var(--mac-hairline);
+  border-radius: var(--mac-radius);
+  box-shadow: var(--mac-shadow);
+}
+
+.card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--mac-hairline);
+  font-size: 0.85rem;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+  padding: 0.7rem 1rem;
+}
+
+/* Bootstrap's row-cols-* stops at 6 and the panel shows seven totals,
+   so the seven column step is defined here. */
+@media (min-width: 1200px) {
+  .row-cols-xl-7 > * {
+    flex: 0 0 auto;
+    width: 14.2857%;
+  }
+}
+
+/* Stat tiles on the landing page. */
+.stat-tile {
+  border-radius: var(--mac-radius);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--mac-shadow-raised);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 680;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.74rem;
+  color: var(--mac-text-muted);
+  letter-spacing: 0.01em;
+}
+
+.stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+/* =========================================================================
+   Tables
+   ========================================================================= */
+
+.table {
+  --bs-table-hover-bg: rgba(140, 40, 137, 0.045);
+  margin-bottom: 0;
+  font-size: 0.895rem;
+}
+
+.table > thead th {
+  background: transparent;
+  border-bottom: 1px solid var(--mac-hairline);
+  color: var(--mac-text-muted);
+  font-size: 0.7rem;
+  font-weight: 620;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
+.table > tbody > tr > td {
+  border-bottom-color: var(--mac-hairline);
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
+.table > tbody > tr:last-child > td {
+  border-bottom: 0;
+}
+
+/* =========================================================================
+   Controls
+   ========================================================================= */
+
+.form-control,
+.form-select {
+  border: 1px solid rgba(60, 50, 70, 0.18);
+  border-radius: var(--mac-radius-sm);
+  background-color: #fff;
+  font-size: 0.895rem;
+  padding: 0.4rem 0.7rem;
+  box-shadow: 0 1px 1px rgba(45, 31, 15, 0.03) inset;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--uach-purple-light);
+  box-shadow: 0 0 0 3.5px rgba(140, 40, 137, 0.18);
+}
+
+.form-label {
+  font-size: 0.78rem;
+  font-weight: 560;
+  color: var(--mac-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.btn {
+  border-radius: var(--mac-radius-sm);
+  font-size: 0.87rem;
+  font-weight: 520;
+  padding: 0.38rem 0.85rem;
+  letter-spacing: -0.005em;
+  transition: filter 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 3.5px rgba(140, 40, 137, 0.25);
+}
+
+/* macOS default buttons are a filled capsule with a faint vertical sheen. */
+.btn-primary {
+  background: linear-gradient(180deg, var(--uach-purple-light) -40%, var(--uach-purple) 55%, var(--uach-purple-dark));
+  border: 1px solid var(--uach-purple-dark);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(111, 31, 109, 0.3);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  filter: brightness(1.08);
+  color: #fff;
+}
+
+.btn-primary:active {
+  filter: brightness(0.94);
+}
+
+.btn-outline-secondary {
+  border-color: rgba(60, 50, 70, 0.2);
+  color: var(--mac-text);
+  background: #fff;
+}
+
+.btn-outline-secondary:hover {
+  background: rgba(140, 40, 137, 0.07);
+  border-color: var(--uach-purple-light);
+  color: var(--uach-purple-dark);
+}
+
+.btn-outline-primary {
+  border-color: rgba(140, 40, 137, 0.35);
+  color: var(--uach-purple);
+  background: #fff;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background: var(--uach-purple);
+  border-color: var(--uach-purple);
+  color: #fff;
+}
+
+.btn-outline-success {
+  border-color: rgba(35, 148, 93, 0.4);
+  color: var(--uach-green);
+  background: #fff;
+}
+
+.btn-outline-success:hover {
+  background: var(--uach-green);
+  border-color: var(--uach-green);
+  color: #fff;
+}
+
+.btn-outline-danger {
+  border-color: rgba(192, 57, 43, 0.35);
+  color: var(--bs-danger);
+  background: #fff;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+/* =========================================================================
+   Badges, alerts, modal
+   ========================================================================= */
+
+.badge {
+  font-weight: 560;
+  letter-spacing: 0.005em;
+  border-radius: 999px;
+  padding: 0.3em 0.7em;
+}
+
+/* Soft tinted pills instead of Bootstrap's solid fills. */
+.badge.text-bg-success {
+  background: rgba(35, 148, 93, 0.13) !important;
+  color: #146b41 !important;
+}
+
+.badge.text-bg-warning {
+  background: rgba(249, 237, 37, 0.3) !important;
+  color: #7a5c00 !important;
+}
+
+.badge.text-bg-secondary {
+  background: rgba(60, 50, 70, 0.09) !important;
+  color: var(--mac-text-muted) !important;
+}
+
+.badge.text-bg-light {
+  background: rgba(140, 40, 137, 0.08) !important;
+  color: var(--uach-purple-dark) !important;
+  border-color: rgba(140, 40, 137, 0.16) !important;
+}
+
+.alert {
+  border: 1px solid var(--mac-hairline);
+  border-radius: var(--mac-radius);
+  box-shadow: var(--mac-shadow);
+  font-size: 0.89rem;
+  padding: 0.7rem 1rem;
+}
+
+.alert-success {
+  background: rgba(35, 148, 93, 0.1);
+  border-color: rgba(35, 148, 93, 0.22);
+  color: #14603a;
+}
+
+.alert-danger {
+  background: rgba(192, 57, 43, 0.09);
+  border-color: rgba(192, 57, 43, 0.22);
+  color: #8e2a20;
+}
+
+.alert-warning {
+  background: rgba(249, 237, 37, 0.24);
+  border-color: rgba(216, 162, 18, 0.3);
+  color: #6f5200;
+}
+
+.modal-content {
+  border: none;
+  border-radius: 14px;
+  box-shadow: var(--mac-shadow-raised);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--mac-hairline);
+}
+
+.modal-backdrop.show {
+  opacity: 0.35;
+}
+
+/* =========================================================================
+   Content bits
+   ========================================================================= */
+
+/* The article body comes from a CLOB that stores its own line breaks. */
+.article-body {
+  white-space: pre-wrap;
+  line-height: 1.72;
+  font-size: 0.95rem;
+}
+
+/* The remove button sits inside a badge, so it must not inflate the pill. */
+.badge form {
+  line-height: 1;
+}
+
+.badge .btn-link {
+  text-decoration: none;
+  vertical-align: baseline;
+}
+
+code {
+  color: var(--uach-purple-dark);
+  background: rgba(140, 40, 137, 0.07);
+  padding: 0.1rem 0.35rem;
+  border-radius: 5px;
+  font-size: 0.85em;
+}
+
+.page-subtitle {
+  font-size: 0.82rem;
+  color: var(--mac-text-muted);
+}
+
+::selection {
+  background: rgba(140, 40, 137, 0.2);
+}
+
+/* macOS overlay scrollbars. */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(60, 50, 70, 0.22);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(60, 50, 70, 0.35);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

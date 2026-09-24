@@ -1,0 +1,15 @@
+{# Flash messages. The category is a Bootstrap contextual colour, so a
+   controller picks the look by flashing "success", "warning" or "danger". #}
+{% set icons = {"success": "check-circle", "danger": "exclamation-triangle",
+                "warning": "exclamation-circle", "info": "info-circle"} %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show d-flex align-items-center"
+         role="alert">
+      <i class="bi bi-{{ icons.get(category, 'info-circle') }} me-2 fs-5"></i>
+      <div>{{ message }}</div>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"
+              aria-label="Cerrar"></button>
+    </div>
+  {% endfor %}
+{% endwith %}

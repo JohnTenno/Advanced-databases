@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% from "partials/macros.html" import page_header, status_badge, empty_state with context %}
+{% block title %}Inicio - Blog BDA{% endblock %}
+{% block toolbar %}Inicio{% endblock %}
+
+{% block content %}
+{{ page_header("Panel del blog",
+   "Totales de blog_web_pkg.dashboard y listado de blog_web_pkg.list_articles_full.") }}
+
+{# label, value, icon, and which crest colour tints the icon chip. #}
+{% set cards = [
+  ("Usuarios",    totals.total_users,      "people",            "purple"),
+  ("Articulos",   totals.total_articles,   "file-earmark-text", "purple"),
+  ("Publicados",  totals.total_published,  "send-check",        "green"),
+  ("Borradores",  totals.total_drafts,     "pencil",            "yellow"),
+  ("Comentarios", totals.total_comments,   "chat-dots",         "blue"),
+  ("Etiquetas",   totals.total_tags,       "tag",               "purple"),
+  ("Categorias",  totals.total_categories, "folder2",           "purple"),
+] %}
+
+{% set tints = {
+  "purple": "background: rgba(140,40,137,.11); color: #8c2889;",
+  "green":  "background: rgba(35,148,93,.13); color: #23945d;",
+  "yellow": "background: rgba(249,237,37,.34); color: #8a6700;",
+  "blue":   "background: rgba(110,189,227,.24); color: #2b7fa8;",
+} %}
+
+<div class="row row-cols-2 row-cols-md-4 row-cols-xl-7 g-3 mb-4">
+  {% for label, value, icon, tint in cards %}
+    <div class="col">
+      <div class="card stat-tile h-100">
+        <div class="card-body text-center py-3">
+          <span class="stat-icon mb-2" style="{{ tints[tint] }}">
+            <i class="bi bi-{{ icon }}"></i>
+          </span>
+          <div class="stat-value">{{ value }}</div>
+          <div class="stat-label">{{ label }}</div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-clock-history me-2"></i>Ultimos articulos</span>
+    <a class="small text-decoration-none" href="{{ url_for('articles.index') }}">
+      Ver todos <i class="bi bi-chevron-right small"></i>
+    </a>
+  </div>
+  {% if articles %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th class="ps-3">ID</th><th>Titulo</th><th>Autor</th>
+            <th>Fecha</th><th>Estado</th><th class="text-end pe-3">Comentarios</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for article in articles %}
+            <tr>
+              <td class="ps-3 text-secondary">{{ article.article_id }}</td>
+              <td>
+                <a class="text-decoration-none fw-medium"
+                   href="{{ url_for('articles.detail', article_id=article.article_id) }}">
+                  {{ article.title }}
+                </a>
+              </td>
+              <td>{{ article.author_name }}</td>
+              <td class="text-nowrap">{{ article.post_date | date }}</td>
+              <td>{{ status_badge(article.status) }}</td>
+              <td class="text-end pe-3">{{ article.comment_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {{ empty_state("Todavia no hay articulos. Crea un usuario y luego un articulo.",
+                   "file-earmark-plus") }}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{# One confirmation dialog for the whole page.
+
+   Every delete button carries its target URL and its warning text in data
+   attributes; opening the modal copies them into this form, so deleting a
+   user, an article or a tag all reuse the same markup. #}
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-triangle text-danger me-2"></i>Confirmar
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="confirmModalMessage"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <form method="post" id="confirmModalForm" class="d-inline">
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('confirmModal').addEventListener('show.bs.modal', (event) => {
+    const trigger = event.relatedTarget;
+    document.getElementById('confirmModalForm').action = trigger.dataset.action;
+    document.getElementById('confirmModalMessage').textContent = trigger.dataset.message;
+  });
+</script>
