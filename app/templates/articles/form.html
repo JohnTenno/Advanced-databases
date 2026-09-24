@@ -1,0 +1,66 @@
+{# One form for both create and edit: article is None while creating. #}
+{% extends "layout.html" %}
+{% from "partials/macros.html" import page_header with context %}
+{% set editing = article is not none %}
+{% block title %}{{ "Editar" if editing else "Nuevo" }} articulo - Blog BDA{% endblock %}
+{% block toolbar %}{{ "Editar articulo" if editing else "Nuevo articulo" }}{% endblock %}
+
+{% block content %}
+{{ page_header(
+     "Editar articulo " ~ article.article_id if editing else "Nuevo articulo",
+     "Al guardar se llama a blog_pkg.update_article." if editing
+     else "Al guardar se llama a blog_pkg.create_article, que devuelve el article_id generado.") }}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="user_id">Autor</label>
+        <select class="form-select" id="user_id" name="user_id" required>
+          {% for author in authors %}
+            <option value="{{ author.user_id }}"
+              {{ "selected" if editing and article.user_id == author.user_id }}>
+              {{ author.user_id }} - {{ author.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="status">Estado</label>
+        <select class="form-select" id="status" name="status">
+          {% for status in article_statuses %}
+            <option value="{{ status }}"
+              {{ "selected" if editing and article.status == status }}>
+              {{ status_labels[status] }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="title">Titulo</label>
+        <input class="form-control" id="title" name="title" type="text"
+               maxlength="200" required
+               value="{{ article.title if editing else '' }}">
+      </div>
+
+      {# body_text is a CLOB, so no maxlength is imposed here. #}
+      <div class="col-12">
+        <label class="form-label" for="body_text">Texto</label>
+        <textarea class="form-control" id="body_text" name="body_text"
+                  rows="14" required>{{ article.body_text if editing else '' }}</textarea>
+      </div>
+
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-check-lg me-1"></i>Guardar
+        </button>
+        <a class="btn btn-outline-secondary"
+           href="{{ url_for('articles.detail', article_id=article.article_id)
+                    if editing else url_for('articles.index') }}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% from "partials/macros.html" import page_header, status_badge, delete_button, empty_state with context %}
+{% block title %}Articulos - Blog BDA{% endblock %}
+{% block toolbar %}Articulos{% endblock %}
+
+{% block content %}
+{% call page_header("Articulos",
+   "blog_web_pkg.list_articles_full reutiliza blog_pkg.count_article_comments para la ultima columna.") %}
+  <a class="btn btn-primary" href="{{ url_for('articles.create_form') }}">
+    <i class="bi bi-plus-lg me-1"></i>Nuevo articulo
+  </a>
+{% endcall %}
+
+<div class="card">
+  {% if articles %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">ID</th><th>Titulo</th><th>Autor</th><th>Fecha</th>
+            <th>Estado</th><th class="text-center">Coment.</th>
+            <th class="text-end pe-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for article in articles %}
+            <tr>
+              <td class="ps-3 text-secondary">{{ article.article_id }}</td>
+              <td>
+                <a class="text-decoration-none fw-medium"
+                   href="{{ url_for('articles.detail', article_id=article.article_id) }}">
+                  {{ article.title }}
+                </a>
+              </td>
+              <td>{{ article.author_name }}</td>
+              <td class="text-nowrap">{{ article.post_date | date }}</td>
+              <td>{{ status_badge(article.status) }}</td>
+              <td class="text-center">{{ article.comment_count }}</td>
+              <td class="text-end pe-3 text-nowrap">
+                <a class="btn btn-sm btn-outline-secondary"
+                   href="{{ url_for('articles.edit_form', article_id=article.article_id) }}">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                {% if article.status != 'PUBLISHED' %}
+                  <form method="post" class="d-inline"
+                        action="{{ url_for('articles.publish', article_id=article.article_id) }}">
+                    <button class="btn btn-sm btn-outline-success" type="submit"
+                            title="Publicar"><i class="bi bi-send"></i></button>
+                  </form>
+                {% endif %}
+                {{ delete_button(
+                     url_for('articles.remove', article_id=article.article_id),
+                     "Se eliminara el articulo \"" ~ article.title ~ "\" junto con sus "
+                     ~ article.comment_count ~ " comentario(s) y sus relaciones.") }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {{ empty_state("No hay articulos todavia.", "file-earmark-plus") }}
+  {% endif %}
+</div>
+{% endblock %}

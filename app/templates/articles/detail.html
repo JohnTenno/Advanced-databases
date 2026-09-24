@@ -1,0 +1,179 @@
+{# Full article view: body, both many-to-many links and the comment thread. #}
+{% extends "layout.html" %}
+{% from "partials/macros.html" import status_badge, delete_button, empty_state with context %}
+{% set article = view.article %}
+{% block title %}{{ article.title }} - Blog BDA{% endblock %}
+{% block toolbar %}{{ article.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+  <h1 class="h3 mb-0">{{ article.title }}</h1>
+  <div class="d-flex gap-2">
+    <a class="btn btn-sm btn-outline-secondary"
+       href="{{ url_for('articles.edit_form', article_id=article.article_id) }}">
+      <i class="bi bi-pencil me-1"></i>Editar
+    </a>
+    {% if article.status != 'PUBLISHED' %}
+      <form method="post" class="d-inline"
+            action="{{ url_for('articles.publish', article_id=article.article_id) }}">
+        <button class="btn btn-sm btn-primary" type="submit">
+          <i class="bi bi-send me-1"></i>Publicar
+        </button>
+      </form>
+    {% endif %}
+    {{ delete_button(
+         url_for('articles.remove', article_id=article.article_id),
+         "Se eliminara el articulo junto con sus " ~ article.comment_count
+         ~ " comentario(s) y sus relaciones.", "Eliminar") }}
+  </div>
+</div>
+
+<p class="page-subtitle mb-3">
+  Articulo {{ article.article_id }} &middot;
+  {{ article.author_name }} ({{ article.author_email }}) &middot;
+  {{ article.post_date | date }} &middot;
+  {{ status_badge(article.status) }} &middot;
+  {{ article.comment_count }} comentario(s)
+</p>
+
+<div class="card mb-4">
+  {# The CLOB keeps its line breaks, so they are preserved on screen. #}
+  <div class="card-body article-body">{{ article.body_text }}</div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% set relations = [
+    ("Etiquetas",  "tags",   view.tags,       view.available_tags,
+     "articles.assign_tag",      "articles.remove_tag",      "tag_id"),
+    ("Categorias", "folder", view.categories, view.available_categories,
+     "articles.assign_category", "articles.remove_category", "category_id"),
+  ] %}
+
+  {% for label, icon, assigned, available, assign_ep, remove_ep, id_field in relations %}
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <i class="bi bi-{{ icon }} me-1"></i>{{ label }}
+        </div>
+        <div class="card-body">
+          {% if assigned %}
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              {% for item in assigned %}
+                <span class="badge text-bg-light border d-inline-flex align-items-center gap-1 py-2">
+                  {{ item.name }}
+                  <form method="post" class="d-inline"
+                        action="{{ url_for(remove_ep, article_id=article.article_id,
+                                           **{id_field: item[id_field]}) }}">
+                    <button class="btn btn-sm btn-link text-danger p-0 lh-1 border-0"
+                            type="submit" title="Quitar">
+                      <i class="bi bi-x-lg small"></i>
+                    </button>
+                  </form>
+                </span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-secondary small fst-italic">Sin asignar.</p>
+          {% endif %}
+
+          {% if available %}
+            <form method="post" class="input-group input-group-sm"
+                  action="{{ url_for(assign_ep, article_id=article.article_id) }}">
+              <select class="form-select" name="{{ id_field }}" required>
+                {% for item in available %}
+                  <option value="{{ item[id_field] }}">{{ item.name }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-outline-primary" type="submit">Asignar</button>
+            </form>
+          {% else %}
+            <p class="text-secondary small fst-italic mb-0">
+              Ya tiene todo el catalogo asignado.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<h2 class="h5 mb-3">Comentarios ({{ article.comment_count }})</h2>
+
+<div class="card mb-4">
+  <div class="card-header">Nuevo comentario</div>
+  <div class="card-body">
+    <form method="post" class="row g-3"
+          action="{{ url_for('comments.create', article_id=article.article_id) }}">
+      <div class="col-md-4">
+        <label class="form-label" for="name">Nombre</label>
+        <input class="form-control" id="name" name="name" type="text"
+               maxlength="100" required>
+      </div>
+      {# user_id stays optional: a visitor without an account posts anonymously. #}
+      <div class="col-md-4">
+        <label class="form-label" for="user_id">Usuario registrado</label>
+        <select class="form-select" id="user_id" name="user_id">
+          <option value="">Anonimo</option>
+          {% for user in view.users %}
+            <option value="{{ user.user_id }}">{{ user.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="url">URL (opcional)</label>
+        <input class="form-control" id="url" name="url" type="url"
+               maxlength="250" placeholder="https://">
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="body_text">Comentario</label>
+        <textarea class="form-control" id="body_text" name="body_text"
+                  rows="3" maxlength="1000" required></textarea>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-chat-dots me-1"></i>Publicar comentario
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if view.comments %}
+  {% for comment in view.comments %}
+    <div class="card mb-2">
+      <div class="card-body py-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+          <div>
+            <strong>{{ comment.name }}</strong>
+            {% if comment.url %}
+              <a class="small ms-2" href="{{ comment.url }}" rel="nofollow">
+                {{ comment.url }}
+              </a>
+            {% endif %}
+            <span class="text-secondary small ms-2">
+              {{ comment.created_at | datetime }} &middot;
+              {% if comment.user_id %}
+                usuario {{ comment.user_id }}
+              {% else %}
+                <span class="fst-italic">anonimo</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="text-nowrap">
+            <a class="btn btn-sm btn-outline-secondary"
+               href="{{ url_for('comments.edit_form', comment_id=comment.comment_id) }}">
+              <i class="bi bi-pencil"></i>
+            </a>
+            {{ delete_button(
+                 url_for('comments.remove', comment_id=comment.comment_id),
+                 "Se eliminara el comentario de " ~ comment.name ~ ".") }}
+          </div>
+        </div>
+        <p class="mb-0 mt-2">{{ comment.body_text }}</p>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  {{ empty_state("Este articulo todavia no tiene comentarios.", "chat-dots") }}
+{% endif %}
+{% endblock %}

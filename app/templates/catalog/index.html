@@ -1,0 +1,78 @@
+{# Shared by tags and categories: same columns, same CRUD.
+
+   The controller passes a catalog dict with the labels, the id field name
+   and its own endpoint names, so neither module needs its own template. #}
+{% extends "layout.html" %}
+{% from "partials/macros.html" import page_header, delete_button, empty_state with context %}
+{% block title %}{{ catalog.title }} - Blog BDA{% endblock %}
+{% block toolbar %}{{ catalog.title }}{% endblock %}
+
+{% block content %}
+{{ page_header(catalog.title,
+   "La columna Articulos cuenta cuantos usan cada " ~ catalog.singular
+   ~ " a traves de la tabla puente del modelo.") }}
+
+<div class="card mb-4">
+  <div class="card-header">Nueva {{ catalog.singular }}</div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for(catalog.endpoints.create) }}" class="row g-3">
+      <div class="col-md-5">
+        <label class="form-label" for="name">Nombre</label>
+        <input class="form-control" id="name" name="name" type="text"
+               maxlength="80" required>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label" for="url">URL / slug</label>
+        <input class="form-control" id="url" name="url" type="text"
+               maxlength="120" required placeholder="mi-{{ catalog.singular }}">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="submit">
+          <i class="bi bi-plus-lg me-1"></i>Registrar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if records %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">ID</th><th>Nombre</th><th>URL</th>
+            <th class="text-center">Articulos</th>
+            <th class="text-end pe-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+            {% set record_id = record[catalog.id_field] %}
+            <tr>
+              <td class="ps-3 text-secondary">{{ record_id }}</td>
+              <td class="fw-medium">{{ record.name }}</td>
+              <td><code class="small">{{ record.url }}</code></td>
+              <td class="text-center">
+                <span class="badge text-bg-light border">{{ record.article_count }}</span>
+              </td>
+              <td class="text-end pe-3 text-nowrap">
+                <a class="btn btn-sm btn-outline-secondary"
+                   href="{{ url_for(catalog.endpoints.edit, **{catalog.id_field: record_id}) }}">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                {{ delete_button(
+                     url_for(catalog.endpoints.remove, **{catalog.id_field: record_id}),
+                     "Se eliminara \"" ~ record.name ~ "\" y se quitara de "
+                     ~ record.article_count ~ " articulo(s).") }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {{ empty_state("No hay registros en este catalogo.", "folder-plus") }}
+  {% endif %}
+</div>
+{% endblock %}

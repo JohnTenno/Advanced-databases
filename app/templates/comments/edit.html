@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% from "partials/macros.html" import page_header with context %}
+{% block title %}Editar comentario - Blog BDA{% endblock %}
+{% block toolbar %}Editar comentario{% endblock %}
+
+{% block content %}
+{{ page_header("Editar comentario " ~ comment.comment_id,
+   "Datos actuales con blog_pkg.get_comment; al guardar se llama a blog_pkg.update_comment.") }}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label" for="name">Nombre</label>
+        <input class="form-control" id="name" name="name" type="text"
+               maxlength="100" required value="{{ comment.name }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="user_id">Usuario registrado</label>
+        <select class="form-select" id="user_id" name="user_id">
+          <option value="">Anonimo</option>
+          {% for user in users %}
+            <option value="{{ user.user_id }}"
+              {{ "selected" if comment.user_id == user.user_id }}>{{ user.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="url">URL (opcional)</label>
+        <input class="form-control" id="url" name="url" type="url"
+               maxlength="250" value="{{ comment.url or '' }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="body_text">Comentario</label>
+        <textarea class="form-control" id="body_text" name="body_text"
+                  rows="4" maxlength="1000" required>{{ comment.body_text }}</textarea>
+      </div>
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-check-lg me-1"></i>Guardar
+        </button>
+        <a class="btn btn-outline-secondary"
+           href="{{ url_for('articles.detail', article_id=comment.article_id) }}">
+          Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

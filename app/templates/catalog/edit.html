@@ -1,0 +1,36 @@
+{# Shared edit form for tags and categories. #}
+{% extends "layout.html" %}
+{% from "partials/macros.html" import page_header with context %}
+{% set record_id = record[catalog.id_field] %}
+{% block title %}Editar {{ catalog.singular }} - Blog BDA{% endblock %}
+{% block toolbar %}{{ "Editar " ~ catalog.singular }}{% endblock %}
+
+{% block content %}
+{{ page_header("Editar " ~ catalog.singular ~ " " ~ record_id) }}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post"
+          action="{{ url_for(catalog.endpoints.save, **{catalog.id_field: record_id}) }}"
+          class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="name">Nombre</label>
+        <input class="form-control" id="name" name="name" type="text"
+               maxlength="80" required value="{{ record.name }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="url">URL / slug</label>
+        <input class="form-control" id="url" name="url" type="text"
+               maxlength="120" required value="{{ record.url }}">
+      </div>
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-check-lg me-1"></i>Guardar
+        </button>
+        <a class="btn btn-outline-secondary"
+           href="{{ url_for(catalog.endpoints.index) }}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
