@@ -5,19 +5,26 @@ conventions, so the file has to be split first: a lone "/" closes a PL/SQL
 block (where ";" is part of the code), and outside those blocks every
 statement ends with ";".
 """
+import os
+
 import oracledb
 
 # Understood by SQL*Plus but not by the server. blog_database.sql opens with
 # SET SERVEROUTPUT ON, which would come back as ORA-00922 if sent along.
 SQLPLUS_COMMANDS = ("SET ", "SHOW ", "SPOOL", "PROMPT", "EXIT", "QUIT",
-                    "WHENEVER ", "CONNECT ", "@")
+                    "WHENEVER ", "CONNECT ")
 
 # Statements that open a PL/SQL block, where ";" does not end the statement.
 PLSQL_OBJECTS = ("PACKAGE", "PROCEDURE", "FUNCTION", "TRIGGER", "TYPE")
 
 
-def split_statements(script: str) -> list[str]:
-    """Split a script into statements Oracle can accept one at a time."""
+def split_statements(script: str, base_dir: str = ".") -> list[str]:
+    """Split a script into statements Oracle can accept one at a time.
+
+    A line starting with "@" is a SQL*Plus include (blog_database.sql uses it
+    to pull in create_tables.sql); the server has no equivalent, so it is
+    resolved here by splicing in that file's own statements.
+    """
     statements: list[str] = []
     buffer: list[str] = []
 
@@ -27,6 +34,21 @@ def split_statements(script: str) -> list[str]:
             if block:
                 statements.append(block)
             buffer = []
+            continue
+
+        if line.strip().startswith("@"):
+            # Comments queued ahead of the include (e.g. a section banner)
+            # describe the include itself, not a statement of their own, so
+            # they are dropped rather than sent to the server on their own.
+            if not _is_blank_or_comment_only(buffer):
+                pending = "\n".join(buffer).strip()
+                if pending:
+                    statements.append(pending)
+            buffer = []
+
+            included_path = os.path.join(base_dir, line.strip()[1:].strip())
+            with open(included_path, encoding="utf-8") as handle:
+                statements.extend(split_statements(handle.read(), base_dir))
             continue
 
         buffer.append(line)
@@ -41,6 +63,16 @@ def split_statements(script: str) -> list[str]:
     if remainder:
         statements.append(remainder)
     return statements
+
+
+def _is_blank_or_comment_only(lines: list[str]) -> bool:
+    """Whether the buffered lines are nothing but comments and blank lines."""
+    for line in lines:
+        text = line.strip()
+        if not text or text.startswith("--"):
+            continue
+        return False
+    return True
 
 
 def _opens_plsql_block(lines: list[str]) -> bool:
@@ -79,7 +111,7 @@ def run_script(connection: oracledb.Connection, path: str) -> int:
     loading data into a half built schema.
     """
     with open(path, encoding="utf-8") as handle:
-        statements = split_statements(handle.read())
+        statements = split_statements(handle.read(), os.path.dirname(path) or ".")
 
     print(f"\n{path}: {len(statements)} statement(s)")
     failures = 0
